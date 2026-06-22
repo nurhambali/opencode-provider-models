@@ -1,72 +1,48 @@
-# OpenCode Provider Models
+# opencode-provider-models
 
 Auto-discover models for any OpenAI-compatible provider in OpenCode.
 
-Stop manually listing models in `opencode.jsonc`. This plugin fetches all available models from `GET /v1/models` automatically.
-
-## How It Works
-
-Instead of this (manual, 20+ lines):
-
-```json
-{
-  "9router": {
-    "npm": "@ai-sdk/openai-compatible",
-    "options": { "baseURL": "http://localhost:20128/v1" },
-    "models": {
-      "kr/claude-sonnet-4.5": { "name": "Claude Sonnet 4.5" },
-      "kr/deepseek-3.2": { "name": "DeepSeek 3.2" }
-    }
-  }
-}
+```
+gratis          → Gratis (Combo)
+kr/auto         → Auto (Kiro)
+kr/claude-sonnet-4.5 → Claude Sonnet 4.5 (Kiro)
+ag/gemini-3-flash → Gemini 3 Flash (Antigravity)
 ```
 
-Just this (3 lines, auto-discovered):
+## How it works
 
-```json
-{
-  "9router": {
-    "npm": "@ai-sdk/openai-compatible",
-    "options": { "baseURL": "http://localhost:20128/v1" }
-  }
-}
-```
-
-The plugin fetches `GET /v1/models` and returns all models automatically.
+1. You add a provider to `opencode.json` — just name + npm + URL
+2. Plugin's `config` hook reads API key from auth store (`/connect`)
+3. Fetches `GET /v1/models` and injects all models into the provider
+4. Each model gets a clean display name with provider suffix
 
 ## Installation
 
+Copy `src/index.js` to your plugins directory:
+
+```bash
+mkdir -p ~/.config/opencode/plugins
+curl -o ~/.config/opencode/plugins/provider-models.js \
+  https://raw.githubusercontent.com/nurhambali/opencode-provider-models/main/src/index.js
+```
+
+Or clone the repo:
+
 ```bash
 git clone https://github.com/nurhambali/opencode-provider-models \
-  ~/.config/opencode/skills/opencode-provider-models
+  ~/.config/opencode/plugins/opencode-provider-models
+# then copy or symlink provider-models.js into ~/.config/opencode/plugins/
 ```
 
 ## Usage
 
-Add any OpenAI-compatible provider to your `opencode.jsonc`:
-
-```json
-{
-  "provider": {
-    "my-provider": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "My Provider",
-      "options": {
-        "baseURL": "http://localhost:20128/v1"
-      }
-    }
-  }
-}
-```
-
-That's it. Models are auto-discovered from `GET /v1/models`.
+Add any OpenAI-compatible provider — no models needed:
 
 ```json
 {
   "provider": {
     "9router": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "9Router",
       "options": {
         "baseURL": "http://localhost:20128/v1"
       }
@@ -75,29 +51,38 @@ That's it. Models are auto-discovered from `GET /v1/models`.
 }
 ```
 
-## How It Works
+API key is auto-read from OpenCode's auth store. Set it via `/connect` or `options.apiKey`.
 
-1. OpenCode calls the plugin's `provider.models()` hook
-2. Plugin fetches `GET {baseURL}/models`
-3. Response is parsed and mapped to OpenCode's `Model` format
-4. Results are cached for 5 minutes to avoid excessive requests
+With API key in config:
+
+```json
+{
+  "provider": {
+    "my-ai": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://localhost:20128/v1",
+        "apiKey": "sk-..."
+      }
+    }
+  }
+}
+```
+
+Restart OpenCode — all models appear automatically.
 
 ## Features
 
-- Zero configuration — just add your provider
+- No manual model listing — just add the provider
 - Works with any OpenAI-compatible API
-- Auto-detects all models from `GET /v1/models`
-- Clean model names with provider suffix (e.g. `Claude Sonnet 4.5 (Kiro)`)
-- 5-minute cache to reduce API calls
-- Silent failure — never blocks provider loading
+- Auto-reads API key from auth store (supports `/connect`)
+- Clean names: `Gratis (Combo)`, `Claude Sonnet 4.5 (Kiro)`
+- 5-minute cache, silent on failure
 
-## Development
+## Requirements
 
-```bash
-git clone https://github.com/nurhambali/opencode-provider-models
-cd opencode-provider-models
-# Edit src/index.js
-```
+- OpenCode
+- An OpenAI-compatible provider with `GET /v1/models`
 
 ## License
 
